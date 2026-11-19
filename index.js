@@ -322,3 +322,50 @@
   /* Val-back: sowieso na volledige page-load nog eenmaal herberekenen. */
   window.addEventListener("load", scheduleApply);
 })();
+
+/* Reviews: "X geleden"-tekst live berekenen zodat die nooit verouderd raakt. */
+(function(){
+  function relatieveTijd(dateStr){
+    var then = new Date(dateStr);
+    if (isNaN(then.getTime())) return "";
+    var now = new Date();
+    var diffMs = now - then;
+    if (diffMs < 0) diffMs = 0;
+    var minuten = Math.floor(diffMs / 60000);
+    var uren = Math.floor(minuten / 60);
+    var dagen = Math.floor(uren / 24);
+    var weken = Math.floor(dagen / 7);
+    var maanden = Math.floor(dagen / 30);
+    var jaren = Math.floor(dagen / 365);
+
+    if (minuten < 1) return "Zojuist";
+    if (minuten < 60) return minuten + (minuten === 1 ? " minuut geleden" : " minuten geleden");
+    if (uren < 24) return uren + " uur geleden";
+    if (dagen < 7) return dagen === 1 ? "Een dag geleden" : dagen + " dagen geleden";
+    if (weken < 5) return weken === 1 ? "Een week geleden" : weken + " weken geleden";
+    if (maanden < 12) return maanden === 1 ? "Een maand geleden" : maanden + " maanden geleden";
+    return jaren === 1 ? "Een jaar geleden" : jaren + " jaar geleden";
+  }
+
+  var bronnen = document.querySelectorAll(".review-source[data-review-date]");
+  bronnen.forEach(function(el){
+    var tekst = relatieveTijd(el.getAttribute("data-review-date"));
+    if (tekst) el.textContent = tekst + " · Google";
+  });
+})();
+
+/* Reviews: pijlknoppen scrollen de swipebare kaartenrij. */
+(function(){
+  var track = document.getElementById("reviewsScroll");
+  var prevBtn = document.getElementById("reviewsPrev");
+  var nextBtn = document.getElementById("reviewsNext");
+  if (!track || !prevBtn || !nextBtn) return;
+
+  function scrollByCard(dir){
+    var card = track.querySelector(".review-card");
+    var step = card ? card.getBoundingClientRect().width + 18 : 300;
+    track.scrollBy({ left: dir * step, behavior: "smooth" });
+  }
+
+  prevBtn.addEventListener("click", function(){ scrollByCard(-1); });
+  nextBtn.addEventListener("click", function(){ scrollByC
