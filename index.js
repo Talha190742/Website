@@ -194,6 +194,7 @@
   var submitBtn = document.getElementById("submitBtn");
   var formError = document.getElementById("formError");
   var CONTACT_EMAIL = "ummetkucuker@hotmail.com";
+  var WEB3FORMS_ACCESS_KEY = "3f1382f0-b456-4d57-8746-a67a8d7fdd4f";
 
   if(form){
     form.addEventListener("submit", function(e){
@@ -213,30 +214,37 @@
       if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = "Versturen…"; }
 
       var payload = {
+        access_key: WEB3FORMS_ACCESS_KEY,
+        subject: "Nieuw bericht via website — " + name,
+        replyto: email,
         dienst: service,
         name: name,
         email: email,
         phone: phone || "(niet opgegeven)",
-        message: message,
-        _subject: "Nieuw bericht via website — " + name,
-        _template: "table",
-        _captcha: "false"
+        message: message
       };
 
-      fetch("https://formsubmit.co/ajax/" + CONTACT_EMAIL, {
+      var controller = new AbortController();
+      var timeoutId = setTimeout(function(){ controller.abort(); }, 15000);
+
+      fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       })
         .then(function(res){
-          if(!res.ok) throw new Error("network");
-          return res.json();
+          clearTimeout(timeoutId);
+          return res.json().then(function(data){
+            if(!res.ok || !data.success) throw new Error("network");
+            return data;
+          });
         })
         .then(function(){
-          form.style.display = "none";
-          if(successBox) successBox.classList.add("show");
+          window.location.href = "bedankt.html";
         })
         .catch(function(){
+          clearTimeout(timeoutId);
           if(formError) formError.hidden = false;
         })
         .finally(function(){
