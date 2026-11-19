@@ -368,4 +368,5 @@
   }
 
   prevBtn.addEventListener("click", function(){ scrollByCard(-1); });
-  nextBtn.addEventListener("click", function(){ scrollByC
+  nextBtn.addEventListener("click", function(){ scrollByCard(1); });
+})();
